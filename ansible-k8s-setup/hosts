@@ -2,5 +2,5 @@
 master.example.com
 
 [workers]
-nodeone.example.com
-nodetwo.example.com
+workednode.example.com
+
