@@ -1,0 +1,24 @@
+- hosts: masters
+  become: yes
+  tasks:
+    - name: initialize K8S cluster
+      shell: kubeadm init --pod-network-cidr=192.168.100.0/24 --apiserver-advertise-address=10.0.0.72
+
+    - name: create .kube directory
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+
+    - name: install Pod network
+      become: yes
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.21/manifests/calico.yaml >> pod_network_setup.txt
+      args:
+        chdir: $HOME
+        creates: pod_network_setup.txt
