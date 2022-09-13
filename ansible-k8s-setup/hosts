@@ -1,7 +1,6 @@
 [masters]
 master.example.com
 
-localhost ansible_connection=local
 
 [workers]
 workernode.example.com
