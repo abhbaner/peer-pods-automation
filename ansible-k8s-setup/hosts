@@ -3,5 +3,5 @@ master.example.com
 
 
 [workers]
-workernode.example.com
+worker.example.com
 
