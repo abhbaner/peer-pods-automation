@@ -6,19 +6,25 @@
 
     - name: create .kube directory
       file:
-        path: $HOME/.kube
+        path: /home/ubuntu/.kube
         state: directory
         mode: 0755
 
-    - name: copy admin.conf to user kube config
+   - name: copy admin.conf to user kube config
+      become_user: root
+      become_method: sudo
+      become: yes
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: /root/.kube/config
+        dest: /home/ubuntu/.kube/config
         remote_src: yes
+        mode: '0644'
 
-    - name: install Pod network
+   - pause: seconds=30     
+     
+   - name: install Pod network
+      become_user: root
+      become_method: sudo
       become: yes
-      shell: kubectl apply -f https://docs.projectcalico.org/v3.21/manifests/calico.yaml >> pod_network_setup.txt
-      args:
-        chdir: $HOME
-        creates: pod_network_setup.txt
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.21/manifests/calico.yaml
+                                                          

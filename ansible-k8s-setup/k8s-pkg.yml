@@ -2,7 +2,12 @@
   become: yes
   tasks:
 
-  
+   - name: disable firewall service for labs
+     service:
+        name: firewalld
+        state: stopped
+        enabled: false
+
    - name: Disable SWAP 
      shell: |
        swapoff -a
@@ -13,29 +18,18 @@
        regexp: 'swap'
        state: absent
 
-   - name: Create a empty file for kubernetes sysctl params.
-     copy:
-       content: ""
-       dest: /etc/sysctl.d/99-kubernetes-cri.conf
-       force: no
+   - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+     sysctl:
+      name: net.bridge.bridge-nf-call-ip6tables
+      value: 1
+      state: present
 
-   - name: Ensure br_netfilter is enabled.
-     modprobe:
-       name: br_netfilter
-       state: present
-
-   - name: Configure sysctl params for Kubernetes.
-     lineinfile:
-       path: /etc/sysctl.d/99-kubernetes-cri.conf 
-       line: "{{ item }}"
-     with_items:
-       - 'net.bridge.bridge-nf-call-iptables  = 1'
-       - 'net.ipv4.ip_forward                 = 1'
-       - 'net.bridge.bridge-nf-call-ip6tables = 1'
-
-   - name: Apply sysctl params without reboot.
-     command: sysctl --system
-
+   - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+     sysctl:
+      name: net.bridge.bridge-nf-call-iptables
+      value: 1
+      state: present
+   
    - name: Installing Prerequisites for Kubernetes
      apt: 
        name:
@@ -47,7 +41,7 @@
          - software-properties-common
        state: present
 
-   - name: Add Dockers official GPG key
+   - name: Add Docker’s official GPG key
      apt_key:
        url: https://download.docker.com/linux/ubuntu/gpg
        state: present
@@ -59,26 +53,16 @@
        filename: docker
        update_cache: yes
 
-   - name: Install containerd.
-     apt: 
-       name:
-         - containerd.io
-       state: present
-
-   - name: Configure containerd.
-     file:
-       path: /etc/containerd
-       state: directory
-
-   - name: Configure containerd.
-     shell: /usr/bin/containerd config default > /etc/containerd/config.toml
-
-   - name: Enable containerd service, and start it.
-     systemd: 
-       name: containerd
-       state: restarted
-       enabled: yes
-       daemon-reload: yes
+  - name: Install Docker
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
 
    - name: Add Google official GPG key
      apt_key:
@@ -104,6 +88,13 @@
      service: 
        name: kubelet
        enabled: yes
+
+   - name: Reboot all the kubernetes nodes.
+     reboot:
+       post_reboot_delay: 60
+       reboot_timeout: 80
+       connect_timeout: 300
+       test_command: uptime    
      
 
 
