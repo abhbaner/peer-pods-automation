@@ -10,7 +10,7 @@
         state: directory
         mode: 0755
 
-   - name: copy admin.conf to user kube config
+    - name: copy admin.conf to user kube config
       become_user: root
       become_method: sudo
       become: yes
@@ -20,9 +20,9 @@
         remote_src: yes
         mode: '0644'
 
-   - pause: seconds=30     
+    - pause: seconds=30     
      
-   - name: install Pod network
+    - name: install Pod network
       become_user: root
       become_method: sudo
       become: yes
