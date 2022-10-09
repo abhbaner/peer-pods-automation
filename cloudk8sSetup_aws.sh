@@ -1,8 +1,14 @@
 #!/bin/bash
 : <<'END_COMMENT'
 Prerequisite 
-set env var VMSSHKEY, see below
+set env vars for security key (to access cloud VMs) path and name 
+
+VMSSHKEY, see below
 'export VMSSHKEY=/path/to/ec2-ssh-key'
+
+VMSSHKEY_NAME see below
+'export VMSSHKEY_NAME='secuerity key name eg: testkey.pem'
+
 
 This script does the below 
 - Run Terraform automation
@@ -77,16 +83,16 @@ done
 
 #generating ssh key on Ansible node and adding them to k8s node's authorized key
 echo "****** Copying ec2 key from execution server to ansible node ******"
-scp -i pptestkey.pem $VMSSHKEY ${USERNAME}${ansible_pub_ip}:/tmp
+scp -i $VMSSHKEY_NAME $VMSSHKEY ${USERNAME}${ansible_pub_ip}:/tmp
 echo "****** Generating SSH key on the Ansible master and copying it to k8s node ******"
 ssh -o StrictHostKeyChecking=no -i $VMSSHKEY ${USERNAME}${ansible_pub_ip} << END
     echo -e "\n\n\n" | ssh-keygen -t rsa
     cd ~/.ssh
-    cp /tmp/pptestkey.pem .
+    cp /tmp/$VMSSHKEY_NAME .
     echo "scp to k8s master>>>>>>>>>>>>>>"
-    scp -o StrictHostKeyChecking=no -i pptestkey.pem id_rsa.pub ubuntu@k8smaster:/tmp
+    scp -o StrictHostKeyChecking=no -i $VMSSHKEY_NAME id_rsa.pub ubuntu@k8smaster:/tmp
     echo "scp to k8s worker>>>>>>>>>>>>>>"
-    scp -o StrictHostKeyChecking=no -i pptestkey.pem id_rsa.pub ubuntu@k8sworker:/tmp
+    scp -o StrictHostKeyChecking=no -i $VMSSHKEY_NAME id_rsa.pub ubuntu@k8sworker:/tmp
     pwd
 END
 
