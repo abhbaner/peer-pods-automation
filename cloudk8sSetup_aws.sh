@@ -1,5 +1,9 @@
 #!/bin/bash
 : <<'END_COMMENT'
+Prerequisite 
+set env var VMSSHKEY, see below
+'export VMSSHKEY=/path/to/ec2-ssh-key'
+
 This script does the below 
 - Run Terraform automation
 - Extract IP information from Terraform output
@@ -63,19 +67,19 @@ USERNAME='ubuntu@'
 HOSTENTRY1="echo $ansible_priv_ip ansible@example.com  ansible | sudo tee -a /etc/hosts"
 HOSTENTRY2="echo $k8smaster_priv_ip k8smaster@example.com  k8smaster | sudo tee -a /etc/hosts"
 HOSTENTRY3="echo $k8sworker_priv_ip ansible@example.com  k8sworker| sudo tee -a /etc/hosts"
-ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${ansible_pub_ip} "${HOSTENTRY2}"
+
 for HOSTIP in $ansible_pub_ip $k8smaster_pub_ip $k8sworker_pub_ip ; do
     for CMD in $HOSTENTRY1 $HOSTENTRY2 $HOSTENTRY3 ; do
         echo "****** Adding host entries in $HOSTIP ******"
-        ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${HOSTIP} "${CMD}"
+        ssh -o StrictHostKeyChecking=no -i $VMSSHKEY ${USERNAME}${HOSTIP} "${CMD}"
     done    
 done
 
 #generating ssh key on Ansible node and adding them to k8s node's authorized key
 echo "****** Copying ec2 key from execution server to ansible node ******"
-scp -i pptestkey.pem pptestkey.pem ${USERNAME}${ansible_pub_ip}:/tmp
+scp -i pptestkey.pem $VMSSHKEY ${USERNAME}${ansible_pub_ip}:/tmp
 echo "****** Generating SSH key on the Ansible master and copying it to k8s node ******"
-ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${ansible_pub_ip} << END
+ssh -o StrictHostKeyChecking=no -i $VMSSHKEY ${USERNAME}${ansible_pub_ip} << END
     echo -e "\n\n\n" | ssh-keygen -t rsa
     cd ~/.ssh
     cp /tmp/pptestkey.pem .
@@ -87,13 +91,13 @@ ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${ansible_pub_ip} <<
 END
 
 echo "****** Appending authorizedkey file on k8s node with Ansible node's public key ******"
-ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${k8smaster_pub_ip} << END
+ssh -o StrictHostKeyChecking=no -i $VMSSHKEY ${USERNAME}${k8smaster_pub_ip} << END
     cd /tmp
     cat id_rsa.pub >> ~/.ssh/authorized_keys
 END
 echo "Ansible public key successfully added to k8s master"
  
-ssh -o StrictHostKeyChecking=no -i pptestkey.pem ${USERNAME}${k8sworker_pub_ip} << END
+ssh -o StrictHostKeyChecking=no -i $VMSSHKEY ${USERNAME}${k8sworker_pub_ip} << END
     cd /tmp
     cat id_rsa.pub >> ~/.ssh/authorized_keys
 END
