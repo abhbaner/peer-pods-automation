@@ -1,7 +1,7 @@
 [masters]
-master.example.com
+k8smaster.example.com
 
 
 [workers]
-worker.example.com
+k8sworker.example.com
 
