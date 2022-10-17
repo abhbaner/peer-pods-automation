@@ -70,9 +70,9 @@ k8sworker_priv_ip=$retval
 
 #Adding entries to /etc/hosts of all nodes
 USERNAME='ubuntu@'
-HOSTENTRY1="echo $ansible_priv_ip ansible@example.com  ansible | sudo tee -a /etc/hosts"
-HOSTENTRY2="echo $k8smaster_priv_ip k8smaster@example.com  k8smaster | sudo tee -a /etc/hosts"
-HOSTENTRY3="echo $k8sworker_priv_ip ansible@example.com  k8sworker| sudo tee -a /etc/hosts"
+HOSTENTRY1="echo $ansible_priv_ip ansible.example.com  ansible | sudo tee -a /etc/hosts"
+HOSTENTRY2="echo $k8smaster_priv_ip k8smaster.example.com  k8smaster | sudo tee -a /etc/hosts"
+HOSTENTRY3="echo $k8sworker_priv_ip ansible.example.com  k8sworker| sudo tee -a /etc/hosts"
 
 for HOSTIP in $ansible_pub_ip $k8smaster_pub_ip $k8sworker_pub_ip ; do
     for CMD in $HOSTENTRY1 $HOSTENTRY2 $HOSTENTRY3 ; do
