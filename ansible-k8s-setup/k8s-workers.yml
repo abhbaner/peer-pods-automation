@@ -1,4 +1,4 @@
-- hosts: master.example.com
+- hosts: k8smaster.example.com
   become: yes
   become_method: sudo
   become_user: root
